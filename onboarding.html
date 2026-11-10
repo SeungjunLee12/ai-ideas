@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 온보딩 에이전트</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <a class="back" href="index.html">← 목록으로</a>
+  <h1>AI 온보딩 에이전트 제안</h1>
+  <div class="meta">IDT AI 아이디어 챌린지 · 2026-11-10</div>
+
+  <h2>배경</h2>
+  <p>신규 입사자와 PC 교체 직원은 업무 시작 전 반나절 가까이를 환경 세팅과 자료 찾기에 쓴다. 요즘은 MS365를 설치하지 않고 웹으로 쓰는 경우가 많아 세팅 자체는 가벼워졌지만, 무엇을 봐야 하는지는 여전히 선배와 IT 담당자에게 물어봐야 한다.</p>
+  <ul>
+    <li>MS365 웹, 그룹웨어, Jira/Confluence 접속 경로를 각자 찾아 등록</li>
+    <li>사내 매뉴얼이 여러 곳에 흩어져 있어 직접 다운로드하고 정리</li>
+    <li>Confluence 스페이스가 많아 내 업무에 필요한 자료를 고르기 어려움</li>
+  </ul>
+
+  <h2>핵심 메시지</h2>
+  <p class="callout">"신입이 뭘 봐야 할지 AI가 알아서 골라주고 정리해준다."</p>
+  <p>설치나 로그인을 대신 해주는 것은 기반 기능일 뿐이다. 이 제안의 핵심은 소속 팀과 직무에 맞춰 AI가 자료를 선별·분류·요약하는 온보딩 에이전트다.</p>
+
+  <h2>단계별 구성</h2>
+  <p>다섯 단계 중 ②~⑤가 AI가 판단하는 구간이며, ①은 이를 위한 기반 자동화다.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>단계</th><th>내용</th><th>AI 역할</th></tr></thead>
+    <tbody>
+      <tr><td>① 기본 세팅</td><td>MS365 웹 바로가기, 그룹웨어, Jira/Confluence 북마크</td><td>자동화 (기반)</td></tr>
+      <tr class="ai"><td>② 맞춤 자료 선별</td><td>소속 팀과 직무를 보고 필요한 매뉴얼과 Confluence 스페이스만 골라 다운로드</td><td>AI 판단</td></tr>
+      <tr class="ai"><td>③ 자동 폴더 정리</td><td>받은 문서를 읽고 주제별로 분류 (01_필수규정 / 02_개발환경 / 03_프로젝트)</td><td>AI 분류</td></tr>
+      <tr class="ai"><td>④ 첫 주 가이드 생성</td><td>이번 주에 읽을 문서 5개, 세팅할 것, 물어볼 사람 요약본 생성</td><td>AI 요약</td></tr>
+      <tr class="ai"><td>⑤ 온보딩 Q&amp;A</td><td>정리된 자료를 바탕으로 "VPN 어떻게 켜요?" 같은 질문에 답변</td><td>RAG 챗봇</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>기대효과</h2>
+  <p>아래 수치는 예시이며, 데모 후 실측치로 바꾼다.</p>
+  <ul>
+    <li>온보딩 세팅 시간: 반나절 → 10분</li>
+    <li>선배와 IT 담당자가 반복해서 받는 질문 감소</li>
+    <li>고객사에도 "AI 온보딩 솔루션"으로 확장 가능 (사업 연결성)</li>
+  </ul>
+
+  <h2>보안 고려 및 데모 범위</h2>
+  <p>계정 정보는 AI가 저장하거나 대신 입력하지 않는다. 사용자가 회사 SSO 인증을 한 번 하면, 에이전트는 그 인증 범위 안에서만 자료에 접근한다.</p>
+  <ul>
+    <li>데모 범위: ②~⑤ (Confluence API + LLM). 예를 들어 "개발팀 신입"을 입력하면 폴더와 첫 주 가이드가 생성되는 화면</li>
+    <li>① 실제 로그인 자동화는 데모에서 제외하고 구성도로만 설명</li>
+    <li>예상 소요: 데모 제작 1~2주 (접수 마감 11/26)</li>
+  </ul>
+
+  <footer>IDT AI 아이디어 챌린지 제출 아이디어</footer>
+</main>
+</body>
+</html>
