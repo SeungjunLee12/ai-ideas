@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>wiki-sync 개발 가이드</title>
+<link rel="stylesheet" href="../style.css?v=3">
+</head>
+<body>
+<main>
+  <nav class="docnav"><a href="../wiki-sync.html">제안서</a><a href="prd.html">PRD</a><a href="sdd.html">SDD</a><a href="did.html">DID</a><a href="dsd.html">DSD</a><a class="on" href="dev-guide.html">개발 가이드</a></nav>
+  <h1>개발 가이드</h1>
+  <div class="meta">wiki-sync (Confluence Git 동기화 도구)</div>
+
+  <div class="table-wrap">
+  <table class="docinfo">
+    <tbody>
+      <tr><th>문서 버전</th><td>v0.1 (초안)</td></tr>
+      <tr><th>작성일</th><td>2026-11-10</td></tr>
+      <tr><th>대상</th><td>wiki-sync를 개발 · 수정하는 개발자</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>1. 기술 스택</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>영역</th><th>선택</th><th>용도</th></tr></thead>
+    <tbody>
+      <tr><td>언어</td><td>Python 3.12</td><td></td></tr>
+      <tr><td>패키지 관리</td><td>uv (또는 pip + venv)</td><td>의존성 · 가상환경</td></tr>
+      <tr><td>CLI</td><td>Typer</td><td>명령 · 옵션 · 도움말</td></tr>
+      <tr><td>출력</td><td>Rich</td><td>진행률, 색상, 표</td></tr>
+      <tr><td>HTTP</td><td>httpx</td><td>동기 · 비동기 요청, 타임아웃</td></tr>
+      <tr><td>XML</td><td>lxml</td><td>Storage 형식 파싱</td></tr>
+      <tr><td>Markdown</td><td>markdown-it-py (+ mdit-py-plugins)</td><td>Markdown 파싱 · 렌더링</td></tr>
+      <tr><td>front matter</td><td>PyYAML</td><td>YAML 읽기 · 쓰기</td></tr>
+      <tr><td>자격 증명</td><td>keyring</td><td>OS 자격 증명 저장소</td></tr>
+      <tr><td>테스트</td><td>pytest, respx</td><td>단위 · 통합 테스트, HTTP 모킹</td></tr>
+      <tr><td>정적 검사</td><td>ruff, mypy</td><td>린트 · 포맷 · 타입</td></tr>
+      <tr><td>배포</td><td>PyInstaller</td><td>Windows 실행 파일 <code>wiki.exe</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>2. 저장소 구조</h2>
+<pre><code>wiki-sync/
+├─ pyproject.toml
+├─ README.md
+├─ src/wikisync/
+│  ├─ __init__.py
+│  ├─ cli.py               # Typer 앱, 명령 정의, 종료 코드
+│  ├─ config.py            # config.json, 작업 폴더 탐색
+│  ├─ auth.py              # keyring, 인증 헤더
+│  ├─ client.py            # Confluence REST 호출, 재시도
+│  ├─ errors.py            # 도메인 예외
+│  ├─ index.py             # index.json, 해시
+│  ├─ paths.py             # 제목 → 파일 경로 규칙
+│  ├─ gitops.py            # git 명령 래퍼
+│  ├─ convert/
+│  │  ├─ to_markdown.py    # Storage → Markdown
+│  │  ├─ to_storage.py     # Markdown → Storage
+│  │  ├─ macros.py         # 보존 블록 처리
+│  │  └─ links.py          # 페이지 링크 · 이미지 변환
+│  └─ sync/
+│     ├─ clone.py
+│     ├─ pull.py
+│     ├─ status.py
+│     ├─ push.py
+│     └─ result.py         # 페이지별 결과 집계
+├─ tests/
+│  ├─ unit/
+│  ├─ integration/
+│  └─ fixtures/
+│     ├─ storage/          # 실제 페이지에서 뽑은 Storage 샘플 (*.xml)
+│     └─ golden/           # 기대 Markdown (*.md)
+└─ docs/                   # PRD · SDD · DID · DSD</code></pre>
+
+  <h2>3. 개발 환경 구성</h2>
+  <ol>
+    <li>Python 3.12와 git 2.30 이상을 설치한다.</li>
+    <li>저장소를 받고 가상환경을 만든다.
+<pre><code>git clone &lt;사내 저장소 주소&gt;/wiki-sync.git
+cd wiki-sync
+uv venv
+uv pip install -e ".[dev]"</code></pre></li>
+    <li>동작을 확인한다.
+<pre><code>wiki --version
+pytest</code></pre></li>
+    <li>테스트용 Confluence 스페이스를 하나 만든다(개인 스페이스 권장). 실제 업무 스페이스로 개발하지 않는다.</li>
+    <li>API 토큰은 Atlassian 계정 설정의 보안 메뉴에서 발급하고, <code>wiki login</code>으로 등록한다. 토큰을 코드나 <code>.env</code>에 넣지 않는다.</li>
+  </ol>
+
+  <h2>4. 코딩 규칙</h2>
+  <ul>
+    <li>포맷 · 린트는 ruff, 타입은 mypy strict를 통과해야 한다.</li>
+    <li>모듈 간 의존 방향: <code>cli → sync → (client, convert, index, gitops)</code>. 하위 모듈은 상위 모듈을 import하지 않는다.</li>
+    <li>HTTP 오류는 <code>client.py</code>에서 도메인 예외(<code>AuthError</code>, <code>ConflictError</code>, <code>NotFoundError</code>, <code>RateLimitError</code>)로 바꾼다. 상위 모듈은 HTTP 상태 코드를 직접 다루지 않는다.</li>
+    <li>사용자에게 보이는 메시지는 한국어로, 다음 행동을 함께 안내한다. 예: "로그인이 만료되었습니다. <code>wiki login</code>을 실행하세요."</li>
+    <li>로그에 토큰 · 인증 헤더 · 페이지 본문을 남기지 않는다.</li>
+    <li>파일 쓰기는 항상 UTF-8, 줄 끝 LF로 한다.</li>
+  </ul>
+
+  <h2>5. 테스트</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>명령</th><th>내용</th></tr></thead>
+    <tbody>
+      <tr><td><code>pytest tests/unit</code></td><td>단위 테스트</td></tr>
+      <tr><td><code>pytest tests/integration</code></td><td>HTTP 모킹 통합 테스트 (네트워크 불필요)</td></tr>
+      <tr><td><code>pytest -m e2e</code></td><td>실제 테스트 스페이스 대상. 환경 변수 <code>WIKISYNC_E2E_SPACE</code> 필요</td></tr>
+      <tr><td><code>pytest --update-golden</code></td><td>변환기 기대 결과 갱신 (diff를 꼭 검토)</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>변환기 샘플 추가 방법</h3>
+  <ol>
+    <li>문제가 된 페이지의 Storage 본문을 받아 <code>tests/fixtures/storage/&lt;이름&gt;.xml</code>로 저장한다. 사내 정보는 지운다.</li>
+    <li>기대 Markdown을 <code>tests/fixtures/golden/&lt;이름&gt;.md</code>로 만든다.</li>
+    <li>변환 테스트와 왕복 테스트가 모두 통과하도록 변환기를 고친다.</li>
+  </ol>
+
+  <h2>6. 브랜치와 리뷰</h2>
+  <ul>
+    <li>기본 브랜치는 <code>main</code>. 작업은 <code>feat/…</code>, <code>fix/…</code> 브랜치에서 하고 PR로 합친다.</li>
+    <li>PR 조건: 테스트 · ruff · mypy 통과, 리뷰어 1명 승인</li>
+    <li>변환기 변경 PR에는 바뀐 golden 파일의 diff를 설명에 요약한다.</li>
+    <li>커밋 메시지는 무엇을 왜 바꿨는지 한 줄로 쓴다. 예: <code>push: 409 응답을 충돌로 처리</code></li>
+  </ul>
+
+  <h2>7. 빌드와 배포</h2>
+  <ol>
+    <li>버전은 <code>pyproject.toml</code>의 <code>version</code>을 올린다(유의적 버전: 0.x 동안은 형식 변경 시 minor 증가).</li>
+    <li>Windows 실행 파일 빌드:
+<pre><code>pyinstaller --onefile --name wiki src/wikisync/__main__.py</code></pre></li>
+    <li>사내 배포 위치에 <code>wiki.exe</code>와 변경 내역을 올린다. 사용자는 PATH에 있는 폴더에 복사하면 된다.</li>
+    <li>개발자는 <code>uv tool install</code> 또는 <code>pipx install</code>로 설치해도 된다.</li>
+  </ol>
+
+  <h2>8. PoC 작업 순서</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>기간</th><th>작업</th><th>완료 기준</th></tr></thead>
+    <tbody>
+      <tr><td>11/10 ~ 11/14</td><td>config · auth · client · paths · index, <code>login</code> · <code>clone</code></td><td>테스트 스페이스 clone 성공, 경로 규칙 단위 테스트 통과</td></tr>
+      <tr><td>11/17 ~ 11/20</td><td>to_markdown · to_storage · macros, <code>status</code> · <code>diff</code> · <code>push</code>(수정)</td><td>샘플 10종 왕복 테스트 통과, 버전 충돌 시 건너뛰기 확인</td></tr>
+      <tr><td>11/21 ~ 11/24</td><td><code>--dry-run</code>, 오류 처리 · 재시도, AI 일괄 수정 시나리오</td><td>데모 시나리오 처음부터 끝까지 성공</td></tr>
+      <tr><td>11/25 ~ 11/26</td><td>데모 영상 녹화, 발표 자료</td><td>제출 완료</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>9. 자주 겪는 문제</h2>
+  <details><summary>clone 후 바로 status를 했는데 파일이 수정됨(M)으로 나와요</summary><p>git의 <code>core.autocrlf</code> 설정으로 줄 끝이 바뀌었을 가능성이 크다. 해시는 LF로 정규화해 계산하므로 정상이라면 나오지 않아야 한다. 해시 계산 코드에서 정규화가 빠지지 않았는지 확인한다.</p></details>
+  <details><summary>업로드 시 400 오류가 나요</summary><p>대부분 Storage XML 형식 오류다. <code>--verbose</code>로 응답 메시지를 보고, 해당 페이지를 변환기 샘플로 추가해 재현한다.</p></details>
+  <details><summary>경로가 너무 길다는 오류가 나요 (Windows)</summary><p><code>maxFileNameLength</code>를 줄이거나 작업 폴더를 <code>C:\wiki</code>처럼 짧은 경로에 둔다.</p></details>
+</main>
+</body>
+</html>

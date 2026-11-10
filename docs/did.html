@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>wiki-sync DID</title>
+<link rel="stylesheet" href="../style.css?v=3">
+</head>
+<body>
+<main>
+  <nav class="docnav"><a href="../wiki-sync.html">제안서</a><a href="prd.html">PRD</a><a href="sdd.html">SDD</a><a class="on" href="did.html">DID</a><a href="dsd.html">DSD</a><a href="dev-guide.html">개발 가이드</a></nav>
+  <h1>DID · 상세 인터페이스 설계서</h1>
+  <div class="meta">wiki-sync (Confluence Git 동기화 도구)</div>
+
+  <div class="table-wrap">
+  <table class="docinfo">
+    <tbody>
+      <tr><th>문서 버전</th><td>v0.1 (초안)</td></tr>
+      <tr><th>작성일</th><td>2026-11-10</td></tr>
+      <tr><th>범위</th><td>사용자 인터페이스(CLI), 외부 시스템 인터페이스(Confluence REST API, git, OS 자격 증명), 파일 인터페이스</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>1. 인터페이스 목록</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>ID</th><th>인터페이스</th><th>방향</th><th>방식</th></tr></thead>
+    <tbody>
+      <tr><td>IF-01</td><td>CLI</td><td>사용자 → wiki</td><td>명령줄 인자, 표준 출력, 종료 코드</td></tr>
+      <tr><td>IF-02</td><td>Confluence REST API</td><td>wiki ↔ Confluence Cloud</td><td>HTTPS, JSON, Basic 인증(이메일 + API 토큰)</td></tr>
+      <tr><td>IF-03</td><td>git</td><td>wiki → git CLI</td><td>subprocess 호출</td></tr>
+      <tr><td>IF-04</td><td>OS 자격 증명 저장소</td><td>wiki ↔ Windows 자격 증명 관리자 등</td><td>Python keyring 라이브러리</td></tr>
+      <tr><td>IF-05</td><td>로컬 파일</td><td>wiki ↔ 사용자 · AI 도구</td><td>Markdown + front matter, JSON (<a href="dsd.html">DSD</a> 참고)</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>2. IF-01 CLI</h2>
+  <h3>2.1 공통 옵션</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>옵션</th><th>설명</th></tr></thead>
+    <tbody>
+      <tr><td><code>-C &lt;경로&gt;</code></td><td>작업 폴더 지정 (기본: 현재 폴더에서 위로 올라가며 <code>.wiki</code> 탐색)</td></tr>
+      <tr><td><code>-v, --verbose</code></td><td>API 호출 · git 명령을 화면에 출력</td></tr>
+      <tr><td><code>--json</code></td><td>결과를 JSON으로 출력 (지원 명령만)</td></tr>
+      <tr><td><code>--no-color</code></td><td>색상 없이 출력</td></tr>
+      <tr><td><code>--version</code>, <code>--help</code></td><td>버전 · 도움말</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>2.2 명령 규격</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>명령</th><th>인자 · 옵션</th><th>동작</th><th>출력</th></tr></thead>
+    <tbody>
+      <tr><td><code>login</code></td><td><code>--site &lt;URL&gt;</code> 필수<br><code>--email &lt;주소&gt;</code> 필수<br>토큰은 숨김 입력으로 받음</td><td>현재 사용자 조회로 토큰 검증 후 keyring에 저장</td><td><code>로그인 성공: &lt;표시 이름&gt;</code></td></tr>
+      <tr><td><code>logout</code></td><td><code>--site &lt;URL&gt;</code></td><td>keyring에서 토큰 삭제</td><td></td></tr>
+      <tr><td><code>clone</code></td><td><code>&lt;SPACE_KEY&gt;</code> 필수<br><code>[DIR]</code> 기본: 스페이스 키<br><code>--root &lt;PAGE_ID&gt;</code><br><code>--attachments</code></td><td>SDD 4.1</td><td>진행률, <code>페이지 N개 → 경로</code></td></tr>
+      <tr><td><code>pull</code></td><td><code>--page &lt;경로&gt;</code> 특정 페이지만</td><td>SDD 4.3</td><td>갱신 · 신규 · 삭제 · 충돌 목록</td></tr>
+      <tr><td><code>status</code></td><td><code>--json</code></td><td>SDD 4.2</td><td><code>M</code> · <code>A</code> · <code>D</code> · <code>R</code> · <code>C</code> + 경로</td></tr>
+      <tr><td><code>diff</code></td><td><code>[경로...]</code></td><td>작업 트리와 <code>confluence</code> 브랜치 비교</td><td>unified diff</td></tr>
+      <tr><td><code>push</code></td><td><code>[경로...]</code> 일부만<br><code>--dry-run</code><br><code>--allow-delete</code><br><code>-m &lt;메시지&gt;</code></td><td>SDD 4.4</td><td>페이지별 결과, 요약</td></tr>
+      <tr><td><code>open</code></td><td><code>&lt;경로&gt;</code></td><td>페이지 웹 주소를 기본 브라우저로 열기</td><td></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>2.3 종료 코드</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>코드</th><th>의미</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>성공</td></tr>
+      <tr><td>1</td><td>일반 오류 (변환 실패, git 오류 등)</td></tr>
+      <tr><td>2</td><td>사용법 오류 (잘못된 인자, 작업 폴더 아님)</td></tr>
+      <tr><td>3</td><td>인증 실패 (로그인 필요, 토큰 만료)</td></tr>
+      <tr><td>4</td><td>일부 완료: 충돌 · 권한 없음으로 건너뛴 페이지 있음</td></tr>
+      <tr><td>5</td><td>네트워크 오류 (재시도 후 실패)</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>2.4 출력 형식</h3>
+<pre><code>&gt; wiki push -m "Java 25 기준으로 갱신"
+  ✔ 수정  개발환경/Java-설치.md               v14 → v15
+  ✔ 수정  개발환경/빌드-서버-설정.md          v7  → v8
+  ✖ 충돌  개발환경/러너-설정.md               받은 v3, 웹 v4 → wiki pull 후 다시 push
+  ✔ 신규  장애대응/러너-배포-실패-대응.md     id 987654321
+
+  완료 3 · 충돌 1 · 실패 0   (종료 코드 4)</code></pre>
+  <p><code>status --json</code> 출력:</p>
+<pre><code>{
+  "changes": [
+    { "state": "M", "path": "개발환경/Java-설치.md", "id": "123456789" },
+    { "state": "A", "path": "장애대응/러너-배포-실패-대응.md", "id": null },
+    { "state": "R", "path": "운영/빌드-서버-설정.md", "id": "123450001",
+      "from": "개발환경/빌드-서버-설정.md" }
+  ]
+}</code></pre>
+
+  <h2>3. IF-02 Confluence REST API</h2>
+  <p>Confluence Cloud REST API v2를 기본으로 하고, v2에 없는 기능만 v1을 쓴다. 기본 주소는 <code>https://&lt;site&gt;.atlassian.net/wiki</code>이다.</p>
+  <p class="note">아래 경로와 필드는 설계 기준이다. 구현 시 Atlassian 공식 API 문서로 다시 확인한다.</p>
+
+  <h3>3.1 인증</h3>
+<pre><code>Authorization: Basic base64("&lt;email&gt;:&lt;api_token&gt;")
+Accept: application/json
+Content-Type: application/json</code></pre>
+
+  <h3>3.2 호출 목록</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>ID</th><th>용도</th><th>메서드 · 경로</th><th>사용처</th></tr></thead>
+    <tbody>
+      <tr><td>API-01</td><td>토큰 검증 · 사용자 조회</td><td><code>GET /rest/api/user/current</code> (v1)</td><td>login</td></tr>
+      <tr><td>API-02</td><td>스페이스 조회</td><td><code>GET /api/v2/spaces?keys={KEY}</code></td><td>clone</td></tr>
+      <tr><td>API-03</td><td>스페이스 페이지 목록</td><td><code>GET /api/v2/spaces/{spaceId}/pages?limit=250[&amp;body-format=storage]</code></td><td>clone, pull</td></tr>
+      <tr><td>API-04</td><td>페이지 단건</td><td><code>GET /api/v2/pages/{id}?body-format=storage</code></td><td>pull, push</td></tr>
+      <tr><td>API-05</td><td>페이지 수정</td><td><code>PUT /api/v2/pages/{id}</code></td><td>push (M, 제목 변경)</td></tr>
+      <tr><td>API-06</td><td>페이지 생성</td><td><code>POST /api/v2/pages</code></td><td>push (A)</td></tr>
+      <tr><td>API-07</td><td>페이지 삭제(휴지통)</td><td><code>DELETE /api/v2/pages/{id}</code></td><td>push (D)</td></tr>
+      <tr><td>API-08</td><td>페이지 이동</td><td><code>PUT /rest/api/content/{id}/move/append/{targetId}</code> (v1)</td><td>push (R, 부모 변경)</td></tr>
+      <tr><td>API-09</td><td>첨부 목록</td><td><code>GET /api/v2/pages/{id}/attachments</code></td><td>clone, pull</td></tr>
+      <tr><td>API-10</td><td>첨부 다운로드</td><td><code>GET</code> 첨부 응답의 <code>downloadLink</code></td><td>clone, pull</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>3.3 페이지네이션</h3>
+  <p>v2 목록 응답의 <code>_links.next</code>가 있으면 그 경로(cursor 포함)로 다음 페이지를 요청하고, 없으면 끝낸다.</p>
+
+  <h3>3.4 API-04 응답 (사용 필드)</h3>
+<pre><code>{
+  "id": "123456789",
+  "status": "current",
+  "title": "Java 설치",
+  "spaceId": "98765",
+  "parentId": "123450000",
+  "version": { "number": 14, "createdAt": "2026-11-03T02:10:00.000Z" },
+  "body": { "storage": { "representation": "storage", "value": "&lt;h1&gt;...&lt;/h1&gt;..." } },
+  "_links": { "webui": "/spaces/DEV/pages/123456789/Java" }
+}</code></pre>
+
+  <h3>3.5 API-05 요청 (페이지 수정)</h3>
+<pre><code>PUT /api/v2/pages/123456789
+{
+  "id": "123456789",
+  "status": "current",
+  "title": "Java 설치",
+  "body": { "representation": "storage", "value": "&lt;h1&gt;...&lt;/h1&gt;..." },
+  "version": { "number": 15, "message": "Java 25 기준으로 갱신 (wiki-sync)" }
+}</code></pre>
+  <p><code>version.number</code>는 인덱스의 version + 1이다. 웹이 그사이 바뀌었으면 서버가 409를 돌려준다.</p>
+
+  <h3>3.6 API-06 요청 (페이지 생성)</h3>
+<pre><code>POST /api/v2/pages
+{
+  "spaceId": "98765",
+  "status": "current",
+  "title": "러너 배포 실패 대응",
+  "parentId": "123450200",
+  "body": { "representation": "storage", "value": "..." }
+}</code></pre>
+
+  <h3>3.7 응답 코드 처리</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>코드</th><th>의미</th><th>처리</th><th>종료 코드 영향</th></tr></thead>
+    <tbody>
+      <tr><td>200 · 201 · 204</td><td>성공</td><td>다음 단계</td><td></td></tr>
+      <tr><td>400</td><td>잘못된 요청 (주로 Storage 형식 오류)</td><td>페이지 실패, 응답 메시지 출력</td><td>1</td></tr>
+      <tr><td>401</td><td>인증 실패</td><td>전체 중단, login 안내</td><td>3</td></tr>
+      <tr><td>403</td><td>권한 없음</td><td>페이지 건너뜀</td><td>4</td></tr>
+      <tr><td>404</td><td>페이지 없음</td><td>웹 삭제로 판단, 건너뜀</td><td>4</td></tr>
+      <tr><td>409</td><td>버전 충돌</td><td>충돌 기록</td><td>4</td></tr>
+      <tr><td>429</td><td>호출 제한</td><td><code>Retry-After</code>만큼 대기 후 재시도</td><td>재시도 실패 시 5</td></tr>
+      <tr><td>5xx</td><td>서버 오류</td><td>지수 백오프 재시도 (최대 5회)</td><td>재시도 실패 시 5</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>4. IF-03 git</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>시점</th><th>명령</th></tr></thead>
+    <tbody>
+      <tr><td>clone</td><td><code>git init -b confluence</code> → <code>git add -A</code> → <code>git commit</code> → <code>git branch main</code> → <code>git switch main</code></td></tr>
+      <tr><td>pull · push 전 자동 저장</td><td><code>git add -A</code> → <code>git commit -m "wiki: 로컬 변경 저장"</code> (변경이 있을 때만)</td></tr>
+      <tr><td>웹 상태 반영</td><td><code>git worktree add .wiki/remote confluence</code> (최초 1회) → 파일 쓰기 → <code>git -C .wiki/remote commit</code></td></tr>
+      <tr><td>합치기</td><td><code>git merge --no-edit confluence</code>, 종료 코드 1 + <code>git diff --name-only --diff-filter=U</code>로 충돌 파일 확인</td></tr>
+      <tr><td>diff</td><td><code>git diff confluence -- &lt;경로&gt;</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>wiki가 만드는 커밋 메시지 형식은 <a href="dsd.html">DSD</a> 6장을 따른다. <code>.wiki/remote</code>, <code>.wiki/logs</code>, <code>.wiki/lock</code>은 <code>.gitignore</code>에 넣는다.</p>
+
+  <h2>5. IF-04 OS 자격 증명 저장소</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>항목</th><th>값</th></tr></thead>
+    <tbody>
+      <tr><td>서비스 이름</td><td><code>wiki-sync:&lt;site 호스트&gt;</code> (예: <code>wiki-sync:company.atlassian.net</code>)</td></tr>
+      <tr><td>사용자 이름</td><td>로그인 이메일</td></tr>
+      <tr><td>비밀 값</td><td>API 토큰</td></tr>
+      <tr><td>저장소</td><td>Windows: 자격 증명 관리자 · macOS: 키체인 · Linux: Secret Service</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>6. IF-05 로컬 파일</h2>
+  <p>사용자와 AI 도구가 지켜야 할 규칙이다. 자세한 형식은 <a href="dsd.html">DSD</a>를 따른다.</p>
+  <ul>
+    <li>front matter의 <code>id</code>는 수정하지 않는다. 지우면 새 페이지로 인식된다.</li>
+    <li><code>```confluence-storage</code> 블록은 내용을 바꾸지 않는다. 블록째 지우면 해당 매크로가 삭제된다.</li>
+    <li>새 페이지는 원하는 부모 폴더에 .md 파일을 만들고 <code>title</code>만 적는다.</li>
+    <li>폴더(하위 페이지가 있는 페이지)의 본문은 <code>_index.md</code>에 쓴다.</li>
+  </ul>
+</main>
+</body>
+</html>

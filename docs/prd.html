@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>wiki-sync PRD</title>
+<link rel="stylesheet" href="../style.css?v=3">
+</head>
+<body>
+<main>
+  <nav class="docnav"><a href="../wiki-sync.html">제안서</a><a class="on" href="prd.html">PRD</a><a href="sdd.html">SDD</a><a href="did.html">DID</a><a href="dsd.html">DSD</a><a href="dev-guide.html">개발 가이드</a></nav>
+  <h1>PRD · 제품 요구사항 정의서</h1>
+  <div class="meta">wiki-sync (Confluence Git 동기화 도구)</div>
+
+  <div class="table-wrap">
+  <table class="docinfo">
+    <tbody>
+      <tr><th>문서 버전</th><td>v0.1 (초안)</td></tr>
+      <tr><th>작성일</th><td>2026-11-10</td></tr>
+      <tr><th>상태</th><td>검토 전</td></tr>
+      <tr><th>관련 문서</th><td><a href="sdd.html">SDD</a> · <a href="did.html">DID</a> · <a href="dsd.html">DSD</a> · <a href="dev-guide.html">개발 가이드</a></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>1. 개요</h2>
+  <p>wiki-sync는 Confluence 스페이스를 로컬 Markdown 파일과 git 저장소로 양방향 동기화하는 명령줄 도구다. 사용자는 Git과 같은 명령(<code>clone</code> · <code>pull</code> · <code>status</code> · <code>diff</code> · <code>push</code>)으로 위키를 다루고, AI 코딩 도구로 여러 페이지를 한 번에 수정한다.</p>
+
+  <h2>2. 배경과 문제</h2>
+  <ul>
+    <li>같은 정보(버전, 서버 주소, 담당자)가 여러 페이지에 흩어져 있어 일괄 수정이 어렵고 누락이 생긴다.</li>
+    <li>웹 에디터에는 여러 페이지에 걸친 변경을 검토(diff)하고 리뷰하는 흐름이 없다.</li>
+    <li>개발자의 편집 도구(VS Code, 검색 · 치환, AI 코딩 도구)를 위키에 쓸 수 없다.</li>
+    <li>기존 오픈소스는 단방향(로컬 → Confluence)이라 웹 편집과 함께 쓰기 어렵다.</li>
+  </ul>
+
+  <h2>3. 목표와 비목표</h2>
+  <h3>목표</h3>
+  <ol>
+    <li>Confluence 스페이스를 로컬 파일로 받아오고, 로컬 변경을 안전하게 되돌려 올린다.</li>
+    <li>웹에서 먼저 바뀐 내용을 절대 덮어쓰지 않는다.</li>
+    <li>손대지 않은 페이지는 서식을 포함해 전혀 바뀌지 않는다.</li>
+    <li>AI 도구가 다루기 쉬운 평범한 Markdown 파일 구조를 제공한다.</li>
+  </ol>
+  <h3>비목표 (이번 범위 밖)</h3>
+  <ul>
+    <li>웹 에디터 대체. 웹 편집은 그대로 병행한다.</li>
+    <li>모든 Confluence 매크로의 Markdown 변환. 모르는 매크로는 원본 보존으로 처리한다.</li>
+    <li>권한 · 댓글 · 좋아요 · 페이지 속성(라벨 제외) 동기화</li>
+    <li>실시간 자동 동기화(백그라운드 감시)</li>
+    <li>Confluence Data Center 지원 (확장 단계에서 검토)</li>
+  </ul>
+
+  <h2>4. 사용자</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>사용자</th><th>특징</th><th>주요 요구</th></tr></thead>
+    <tbody>
+      <tr><td>개발자 · 엔지니어</td><td>git과 터미널에 익숙함. 기술 문서를 자주 고침</td><td>일괄 수정, diff 검토, AI 활용</td></tr>
+      <tr><td>문서 관리자 (파트 리더 등)</td><td>스페이스 품질을 책임짐</td><td>노후 문서 파악, 변경 리뷰</td></tr>
+      <tr><td>일반 웹 사용자</td><td>도구를 쓰지 않고 웹에서만 편집</td><td>내 웹 편집이 덮어써지지 않을 것</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>5. 사용자 스토리</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>ID</th><th>스토리</th></tr></thead>
+    <tbody>
+      <tr><td>US-01</td><td>개발자로서, 팀 스페이스를 명령 하나로 로컬 폴더에 받아 VS Code로 열고 싶다.</td></tr>
+      <tr><td>US-02</td><td>개발자로서, AI가 여러 페이지를 고친 뒤 무엇이 바뀌었는지 페이지별로 확인하고 싶다.</td></tr>
+      <tr><td>US-03</td><td>개발자로서, 내가 고친 페이지만 올리고 손대지 않은 페이지는 건드리지 않고 싶다.</td></tr>
+      <tr><td>US-04</td><td>웹 사용자로서, 누가 로컬 도구로 올려도 내가 방금 웹에서 고친 내용이 사라지지 않기를 바란다.</td></tr>
+      <tr><td>US-05</td><td>개발자로서, 웹에서 다른 사람이 고친 내용을 받아 내 로컬 변경과 합치고 싶다.</td></tr>
+      <tr><td>US-06</td><td>개발자로서, 새 .md 파일을 폴더에 두면 해당 위치의 새 페이지로 만들어지길 바란다.</td></tr>
+      <tr><td>US-07</td><td>문서 관리자로서, 실제로 올리기 전에 어떤 페이지가 어떻게 바뀔지 미리 보고 싶다.</td></tr>
+      <tr><td>US-08</td><td>개발자로서, 목차 · Jira 같은 매크로가 있는 페이지도 안심하고 고치고 싶다.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>6. 기능 요구사항</h2>
+  <p>우선순위: <strong>P0</strong> PoC 필수 · <strong>P1</strong> 파일럿 필수 · <strong>P2</strong> 이후</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>ID</th><th>요구사항</th><th>우선순위</th><th>관련</th></tr></thead>
+    <tbody>
+      <tr><td>FR-01</td><td>사이트 주소 · 이메일 · API 토큰을 등록하고 연결을 확인한다. 토큰은 OS 자격 증명 저장소에 저장한다.</td><td>P0</td><td>US-01</td></tr>
+      <tr><td>FR-02</td><td>스페이스 키(또는 루트 페이지 ID)로 페이지 트리 전체를 Markdown 파일로 받고 git 저장소를 초기화한다.</td><td>P0</td><td>US-01</td></tr>
+      <tr><td>FR-03</td><td>로컬에서 수정 · 추가 · 삭제 · 이동된 페이지 목록을 보여준다.</td><td>P0</td><td>US-02</td></tr>
+      <tr><td>FR-04</td><td>마지막 동기화 이후 로컬 변경 내용을 diff로 보여준다.</td><td>P0</td><td>US-02</td></tr>
+      <tr><td>FR-05</td><td>수정된 기존 페이지만 업로드한다. 변경 여부는 파일 해시로 판단한다.</td><td>P0</td><td>US-03</td></tr>
+      <tr><td>FR-06</td><td>업로드 전 웹 버전을 확인해, 받은 버전과 다르면 해당 페이지를 건너뛰고 충돌로 보고한다.</td><td>P0</td><td>US-04</td></tr>
+      <tr><td>FR-07</td><td><code>--dry-run</code>으로 업로드 없이 변경 예정 목록과 버전 변화를 출력한다.</td><td>P0</td><td>US-07</td></tr>
+      <tr><td>FR-08</td><td>Markdown으로 표현할 수 없는 매크로는 원본 XML 블록으로 보존하고 업로드 시 복원한다.</td><td>P0</td><td>US-08</td></tr>
+      <tr><td>FR-09</td><td>웹 변경 페이지만 받아 로컬 변경과 git merge로 합친다.</td><td>P1</td><td>US-05</td></tr>
+      <tr><td>FR-10</td><td>id가 없는 새 .md 파일을 폴더 위치에 맞는 부모 아래 새 페이지로 만든다.</td><td>P1</td><td>US-06</td></tr>
+      <tr><td>FR-11</td><td>파일 이동 · 이름 변경을 감지해 웹 페이지의 부모 · 제목을 바꾼다.</td><td>P1</td><td>US-03</td></tr>
+      <tr><td>FR-12</td><td>페이지 간 링크와 첨부 이미지를 상대 경로로 변환하고 되돌린다.</td><td>P1</td><td>US-08</td></tr>
+      <tr><td>FR-13</td><td>첨부파일을 내려받는다.</td><td>P1</td><td>US-01</td></tr>
+      <tr><td>FR-14</td><td><code>--allow-delete</code>일 때만 로컬에서 지운 페이지를 웹에서 삭제(휴지통 이동)한다.</td><td>P2</td><td>US-03</td></tr>
+      <tr><td>FR-15</td><td>첨부파일을 업로드한다.</td><td>P2</td><td></td></tr>
+      <tr><td>FR-16</td><td>로컬 파일에 해당하는 웹 페이지를 브라우저로 연다.</td><td>P2</td><td></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>7. 비기능 요구사항</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>ID</th><th>분류</th><th>요구사항</th></tr></thead>
+    <tbody>
+      <tr><td>NFR-01</td><td>안전성</td><td>웹의 더 새로운 버전을 덮어쓰는 경우는 0건이어야 한다.</td></tr>
+      <tr><td>NFR-02</td><td>무결성</td><td>수정하지 않은 페이지는 업로드되지 않는다. 변환 왕복(받기 → 올리기 → 받기) 결과는 같아야 한다.</td></tr>
+      <tr><td>NFR-03</td><td>성능</td><td>페이지 500개 스페이스 clone을 5분 안에 끝낸다(목표). pull · push는 바뀐 페이지 수에 비례한다.</td></tr>
+      <tr><td>NFR-04</td><td>복원력</td><td>호출 제한(429)과 일시 오류(5xx)는 자동 재시도한다. 중간 실패 시 성공한 페이지의 상태는 보존된다.</td></tr>
+      <tr><td>NFR-05</td><td>보안</td><td>토큰은 OS 자격 증명 저장소에만 저장하며 파일 · 로그 · git에 남기지 않는다.</td></tr>
+      <tr><td>NFR-06</td><td>호환성</td><td>Windows 10/11 우선, macOS · Linux 동작. Confluence Cloud REST API v2. git 2.30 이상.</td></tr>
+      <tr><td>NFR-07</td><td>사용성</td><td>명령 이름과 출력은 git과 비슷하게 한다. 모든 오류 메시지는 다음 행동을 안내한다.</td></tr>
+      <tr><td>NFR-08</td><td>유지보수</td><td>변환기는 실제 페이지 샘플 기반 회귀 테스트를 갖춘다.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>8. 성공 지표</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>지표</th><th>목표</th></tr></thead>
+    <tbody>
+      <tr><td>40개 페이지 일괄 수정 소요 시간</td><td>30분 이내 (검토 포함)</td></tr>
+      <tr><td>웹 변경 덮어쓰기 사고</td><td>0건</td></tr>
+      <tr><td>변환 왕복 테스트 통과율 (샘플 페이지)</td><td>100%</td></tr>
+      <tr><td>파일럿 팀 주간 활성 사용자</td><td>파트 인원의 50% 이상</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>9. 릴리스 범위와 일정</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>단계</th><th>기간</th><th>범위</th></tr></thead>
+    <tbody>
+      <tr><td>PoC</td><td>11/10 ~ 11/26</td><td>P0 전체 (FR-01 ~ FR-08), 데모 영상</td></tr>
+      <tr><td>파일럿</td><td>PoC 후 4주</td><td>P1 전체, 팀 스페이스 1곳 적용, 지표 측정</td></tr>
+      <tr><td>확대</td><td>파일럿 후</td><td>P2, 사내 배포 실행 파일, 팀 운영 가이드</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>10. 가정과 제약</h2>
+  <ul>
+    <li>회사 Confluence는 Cloud이며, 사용자는 API 토큰을 발급할 수 있다.</li>
+    <li>사용자 PC에 git이 설치되어 있다.</li>
+    <li>Confluence 페이지 제목은 스페이스 안에서 유일하다(Confluence 규칙).</li>
+    <li>Windows 경로 길이 제한(260자)을 고려해 파일명을 줄일 수 있다.</li>
+  </ul>
+
+  <h2>11. 미결 사항</h2>
+  <ul>
+    <li>회사 Confluence가 Cloud인지 Data Center인지 최종 확인 필요</li>
+    <li>clone 폴더를 사내 Git 서버에 올려 팀이 함께 쓰는 운영 방식을 허용할지</li>
+    <li>사내 AI 도구 사용 정책 (사내 문서를 AI 도구에 넣는 범위)</li>
+  </ul>
+</main>
+</body>
+</html>

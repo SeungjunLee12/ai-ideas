@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>wiki-sync SDD</title>
+<link rel="stylesheet" href="../style.css?v=3">
+<style>
+  .d-text { fill: var(--text); }
+  .d-muted { fill: var(--muted); }
+  .d-box { fill: none; stroke: var(--muted); stroke-width: 1.25; }
+  .d-main { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+  .d-line { fill: none; stroke: var(--muted); stroke-width: 1.25; }
+</style>
+</head>
+<body>
+<main>
+  <nav class="docnav"><a href="../wiki-sync.html">제안서</a><a href="prd.html">PRD</a><a class="on" href="sdd.html">SDD</a><a href="did.html">DID</a><a href="dsd.html">DSD</a><a href="dev-guide.html">개발 가이드</a></nav>
+  <h1>SDD · 소프트웨어 설계서</h1>
+  <div class="meta">wiki-sync (Confluence Git 동기화 도구)</div>
+
+  <div class="table-wrap">
+  <table class="docinfo">
+    <tbody>
+      <tr><th>문서 버전</th><td>v0.1 (초안)</td></tr>
+      <tr><th>작성일</th><td>2026-11-10</td></tr>
+      <tr><th>대상 요구사항</th><td><a href="prd.html">PRD</a> FR-01 ~ FR-16, NFR-01 ~ NFR-08</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>1. 설계 원칙</h2>
+  <ol>
+    <li><strong>웹을 덮어쓰지 않는다</strong>: 모든 업로드는 버전 비교를 통과해야 한다. (NFR-01)</li>
+    <li><strong>바꾼 것만 올린다</strong>: 변경 판단은 변환 결과가 아니라 파일 해시로 한다. (NFR-02)</li>
+    <li><strong>모르는 건 보존한다</strong>: 해석할 수 없는 Storage 요소는 원본 XML로 보존한다.</li>
+    <li><strong>git에 맡긴다</strong>: 이력, diff, merge는 직접 구현하지 않고 git을 쓴다.</li>
+    <li><strong>페이지 단위로 실패한다</strong>: 한 페이지 실패가 전체 작업을 멈추지 않는다.</li>
+  </ol>
+
+  <h2>2. 모듈 구조</h2>
+  <figure class="diagram">
+  <svg viewBox="0 0 760 392" role="img" aria-label="CLI 아래 동기화 엔진이 네 개 모듈을 조합한다" font-size="13">
+    <defs><marker id="sa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="d-muted"/></marker></defs>
+    <text x="24" y="32" font-size="15" font-weight="600" class="d-text">CLI 아래 동기화 엔진이 네 개 모듈을 조합한다</text>
+    <g class="d-line">
+      <path d="M380 104V128" marker-end="url(#sa)"/>
+      <path d="M107 192V216" marker-end="url(#sa)"/>
+      <path d="M289 192V216" marker-end="url(#sa)"/>
+      <path d="M471 192V216" marker-end="url(#sa)"/>
+      <path d="M653 192V216" marker-end="url(#sa)"/>
+      <path d="M107 288V312" marker-end="url(#sa)"/>
+      <path d="M471 288V312" marker-end="url(#sa)"/>
+      <path d="M653 288V312" marker-end="url(#sa)"/>
+    </g>
+    <rect x="24" y="56" width="712" height="48" rx="8" class="d-box"/>
+    <text x="380" y="84" text-anchor="middle" font-weight="600" class="d-text">wiki CLI (명령 파싱 · 출력 · 종료 코드)</text>
+    <rect x="24" y="128" width="712" height="64" rx="8" class="d-main"/>
+    <text x="380" y="154" text-anchor="middle" font-weight="600" class="d-text">Sync Engine</text>
+    <text x="380" y="174" text-anchor="middle" font-size="11.5" class="d-text">clone · pull · status · diff · push 흐름 제어</text>
+    <rect x="24" y="216" width="166" height="72" rx="8" class="d-box"/>
+    <text x="107" y="240" text-anchor="middle" font-weight="600" class="d-text">Confluence Client</text>
+    <text x="107" y="256" text-anchor="middle" font-size="11.5" class="d-muted">REST 호출 · 재시도</text>
+    <text x="107" y="272" text-anchor="middle" font-size="11.5" class="d-muted">인증: keyring</text>
+    <rect x="206" y="216" width="166" height="72" rx="8" class="d-box"/>
+    <text x="289" y="240" text-anchor="middle" font-weight="600" class="d-text">Converter</text>
+    <text x="289" y="256" text-anchor="middle" font-size="11.5" class="d-muted">Storage ↔ Markdown</text>
+    <text x="289" y="272" text-anchor="middle" font-size="11.5" class="d-muted">매크로 보존</text>
+    <rect x="388" y="216" width="166" height="72" rx="8" class="d-box"/>
+    <text x="471" y="240" text-anchor="middle" font-weight="600" class="d-text">Index Store</text>
+    <text x="471" y="256" text-anchor="middle" font-size="11.5" class="d-muted">.wiki/index.json</text>
+    <text x="471" y="272" text-anchor="middle" font-size="11.5" class="d-muted">버전 · 해시 관리</text>
+    <rect x="570" y="216" width="166" height="72" rx="8" class="d-box"/>
+    <text x="653" y="240" text-anchor="middle" font-weight="600" class="d-text">Git Adapter</text>
+    <text x="653" y="256" text-anchor="middle" font-size="11.5" class="d-muted">init · commit · merge</text>
+    <text x="653" y="272" text-anchor="middle" font-size="11.5" class="d-muted">git 명령 호출</text>
+    <rect x="24" y="312" width="166" height="56" rx="8" class="d-box"/>
+    <text x="107" y="336" text-anchor="middle" font-weight="600" class="d-text">Confluence Cloud</text>
+    <text x="107" y="354" text-anchor="middle" font-size="11.5" class="d-muted">REST API v2</text>
+    <rect x="388" y="312" width="166" height="56" rx="8" class="d-box"/>
+    <text x="471" y="336" text-anchor="middle" font-weight="600" class="d-text">로컬 파일</text>
+    <text x="471" y="354" text-anchor="middle" font-size="11.5" class="d-muted">.md · .wiki/</text>
+    <rect x="570" y="312" width="166" height="56" rx="8" class="d-box"/>
+    <text x="653" y="336" text-anchor="middle" font-weight="600" class="d-text">git CLI</text>
+    <text x="653" y="354" text-anchor="middle" font-size="11.5" class="d-muted">사용자 PC에 설치된 git</text>
+  </svg>
+  </figure>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>모듈</th><th>패키지</th><th>책임</th></tr></thead>
+    <tbody>
+      <tr><td>CLI</td><td><code>wikisync.cli</code></td><td>명령 · 옵션 파싱, 진행 표시, 결과 출력, 종료 코드 매핑</td></tr>
+      <tr><td>Config</td><td><code>wikisync.config</code></td><td><code>.wiki/config.json</code> 읽기 · 쓰기, 작업 폴더 탐색(상위 폴더로 올라가며 <code>.wiki</code> 찾기)</td></tr>
+      <tr><td>Auth</td><td><code>wikisync.auth</code></td><td>keyring으로 토큰 저장 · 조회, Basic 인증 헤더 생성</td></tr>
+      <tr><td>Confluence Client</td><td><code>wikisync.client</code></td><td>REST 호출, 페이지네이션, 재시도 · 백오프, 오류를 도메인 예외로 변환</td></tr>
+      <tr><td>Converter</td><td><code>wikisync.convert</code></td><td>Storage → Markdown, Markdown → Storage, 매크로 · 링크 · 이미지 변환</td></tr>
+      <tr><td>Index Store</td><td><code>wikisync.index</code></td><td>페이지 ID ↔ 경로 · 버전 · 해시 관리, 원자적 저장</td></tr>
+      <tr><td>Git Adapter</td><td><code>wikisync.gitops</code></td><td>git 명령 실행(subprocess), 브랜치 전환, 커밋, merge 결과 해석</td></tr>
+      <tr><td>Sync Engine</td><td><code>wikisync.sync</code></td><td>clone · pull · status · diff · push 절차 실행, 페이지 단위 결과 집계</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>3. 브랜치 모델</h2>
+  <p>로컬 git 저장소는 두 개의 브랜치를 쓴다.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>브랜치</th><th>내용</th><th>누가 커밋하나</th></tr></thead>
+    <tbody>
+      <tr><td><code>confluence</code></td><td>마지막으로 확인한 웹 상태 그대로. 사람이 직접 수정하지 않는다.</td><td>wiki-sync만</td></tr>
+      <tr><td><code>main</code></td><td>사용자의 작업 브랜치. 로컬 수정과 웹 변경이 합쳐진 상태</td><td>사용자, wiki-sync</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>웹 변경은 항상 <code>confluence</code> 브랜치에 먼저 커밋되고, <code>main</code>으로 merge된다. 덕분에 3-way merge와 충돌 표시를 git이 처리한다.</p>
+
+  <h2>4. 처리 흐름</h2>
+  <h3>4.1 clone</h3>
+  <ol>
+    <li>스페이스 키로 스페이스 ID와 홈 페이지 ID를 조회한다.</li>
+    <li>스페이스의 모든 페이지를 본문 포함으로 페이지네이션하며 받는다. <code>--root</code>가 있으면 그 페이지의 하위 트리만 남긴다.</li>
+    <li><code>parentId</code>로 트리를 만들고, 페이지마다 파일 경로를 정한다(<a href="dsd.html">DSD</a> 4장 경로 규칙).</li>
+    <li>각 페이지를 Markdown으로 변환해 front matter와 함께 저장하고, 인덱스에 id · 경로 · 버전 · 해시를 기록한다.</li>
+    <li><code>git init</code> → <code>confluence</code> 브랜치에 첫 커밋 → <code>main</code> 브랜치를 같은 커밋에서 만든다.</li>
+  </ol>
+
+  <h3>4.2 status</h3>
+  <ol>
+    <li>작업 폴더의 모든 .md 파일을 읽고 front matter의 id를 모은다.</li>
+    <li>판정 규칙:
+      <ul>
+        <li>id가 인덱스에 있고, 본문 해시가 인덱스의 <code>baseHash</code>와 다름 → <strong>M</strong> (수정)</li>
+        <li>id가 인덱스에 있고, 경로 또는 제목이 다름 → <strong>R</strong> (이동 · 이름 변경)</li>
+        <li>id가 없음 → <strong>A</strong> (신규)</li>
+        <li>인덱스에 있는 id가 어떤 파일에도 없음 → <strong>D</strong> (삭제)</li>
+        <li>파일에 git 충돌 표시(<code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>)가 남아 있음 → <strong>C</strong> (충돌 미해결)</li>
+      </ul>
+    </li>
+    <li>status는 네트워크를 쓰지 않는다. 웹 쪽 변경은 pull · push 때 확인한다.</li>
+  </ol>
+
+  <h3>4.3 pull</h3>
+  <ol>
+    <li>작업 폴더에 커밋되지 않은 변경이 있으면 자동으로 커밋한다(메시지: <code>wiki: 로컬 변경 저장</code>).</li>
+    <li>스페이스 페이지 목록을 본문 없이 받아 인덱스 버전과 비교한다. 버전이 높아진 페이지, 새 페이지, 사라진 페이지를 찾는다.</li>
+    <li>바뀐 페이지만 본문을 받는다.</li>
+    <li><code>confluence</code> 브랜치를 별도 작업 트리(<code>git worktree</code>, <code>.wiki/remote</code>)에서 열어, 변환 결과를 쓰고 커밋한다. 사용자 작업 트리는 건드리지 않는다.</li>
+    <li><code>main</code>에서 <code>git merge confluence</code>를 실행한다.</li>
+    <li>충돌이 없으면 인덱스의 version · baseHash를 갱신한다. 충돌이 있으면 충돌 파일 목록을 출력하고, 해당 페이지의 인덱스는 웹 버전만 갱신한다(해결 후 push 가능 상태).</li>
+  </ol>
+
+  <h3>4.4 push</h3>
+  <ol>
+    <li>status를 계산한다. <strong>C</strong>가 있으면 해당 페이지는 제외하고 경고한다.</li>
+    <li>변경분을 자동 커밋한다(메시지: <code>-m</code> 값 또는 <code>wiki push</code>).</li>
+    <li>처리 순서: 신규(A, 부모가 먼저) → 이동 · 이름 변경(R) → 수정(M) → 삭제(D, <code>--allow-delete</code>일 때).</li>
+    <li>페이지마다:
+      <ol>
+        <li>웹의 현재 버전을 조회한다. 인덱스 version과 다르면 <strong>충돌</strong>로 기록하고 다음 페이지로 간다.</li>
+        <li>Markdown → Storage로 변환한다.</li>
+        <li>버전 +1로 업로드한다. 서버가 409(버전 불일치)를 주면 충돌로 기록한다.</li>
+        <li>성공하면 인덱스의 version · baseHash를 갱신하고 즉시 저장한다(중간 실패 대비).</li>
+      </ol>
+    </li>
+    <li>성공한 페이지의 웹 본문을 다시 받아 <code>confluence</code> 브랜치에 커밋하고 <code>main</code>에 merge한다. 변환 왕복에 차이가 있다면 이 단계에서 드러난다.</li>
+    <li>결과 요약(성공 · 충돌 · 실패 수)을 출력하고 종료 코드를 정한다(<a href="did.html">DID</a> 2.3장).</li>
+  </ol>
+  <p><code>--dry-run</code>은 4-1 버전 조회까지만 하고 업로드 · 커밋 · 인덱스 갱신을 하지 않는다.</p>
+
+  <h2>5. 변환 설계</h2>
+  <h3>5.1 Storage → Markdown</h3>
+  <ul>
+    <li>Storage 본문을 <code>ac</code> · <code>ri</code> 네임스페이스 선언이 있는 루트로 감싸 XML 파서(lxml)로 읽는다.</li>
+    <li>요소별 변환기를 등록하는 방식이다(<code>h1~h6</code>, <code>p</code>, <code>ul/ol/li</code>, <code>table</code>, <code>a</code>, <code>strong/em/code</code>, <code>ac:link</code>, <code>ac:image</code>, <code>ac:structured-macro[name=code]</code>).</li>
+    <li>등록되지 않은 요소는 원본 XML을 그대로 <code>```confluence-storage</code> 블록으로 출력한다.</li>
+    <li>셀 병합(<code>rowspan</code>/<code>colspan</code>)이 있는 표는 HTML 표로 그대로 둔다.</li>
+    <li>출력은 정규화한다(줄 끝 LF, 마지막 줄바꿈 1개, 목록 들여쓰기 2칸). 같은 입력이면 항상 같은 출력이 나와야 한다.</li>
+  </ul>
+  <h3>5.2 Markdown → Storage</h3>
+  <ul>
+    <li>markdown-it-py(CommonMark + 표 확장)로 파싱하고, 전용 렌더러가 XHTML을 만든다.</li>
+    <li><code>```confluence-storage</code> 블록은 내용을 그대로 출력한다. XML로 파싱되지 않으면 해당 페이지 업로드를 중단하고 오류를 보고한다.</li>
+    <li>상대 경로 .md 링크는 인덱스에서 대상 페이지 제목을 찾아 <code>ac:link</code>로 바꾼다. 대상이 없으면 일반 링크로 두고 경고한다.</li>
+    <li><code>_attachments/&lt;id&gt;/</code> 아래 이미지는 <code>ac:image</code> + <code>ri:attachment</code>로 바꾼다.</li>
+  </ul>
+  <h3>5.3 왕복 보장</h3>
+  <p>테스트 기준: 샘플 Storage S에 대해 <code>md1 = toMd(S)</code>, <code>md2 = toMd(toStorage(md1))</code>일 때 <code>md1 == md2</code>여야 한다. Storage끼리는 서식 공백이 달라질 수 있으므로 Markdown 기준으로 비교한다.</p>
+
+  <h2>6. 오류 처리</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>오류</th><th>처리</th></tr></thead>
+    <tbody>
+      <tr><td>401 · 403 (인증 · 권한)</td><td>401은 전체 중단하고 <code>wiki login</code> 안내. 403은 해당 페이지만 "권한 없음"으로 건너뜀</td></tr>
+      <tr><td>404 (페이지 없음)</td><td>웹에서 삭제된 것으로 판단. push는 건너뛰고 경고, pull은 로컬 파일 유지 후 안내</td></tr>
+      <tr><td>409 (버전 불일치)</td><td>충돌로 기록</td></tr>
+      <tr><td>429 · 5xx</td><td><code>Retry-After</code> 헤더가 있으면 그만큼, 없으면 1 · 2 · 4 · 8 · 16초 지수 백오프로 최대 5회 재시도</td></tr>
+      <tr><td>네트워크 단절</td><td>재시도 후 실패하면 중단. 이미 성공한 페이지는 인덱스에 반영된 상태 유지</td></tr>
+      <tr><td>변환 실패</td><td>해당 페이지만 실패 처리, 원인 요소 위치를 출력</td></tr>
+      <tr><td>git 명령 실패</td><td>명령과 stderr를 출력하고 중단</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>7. 동시성과 성능</h2>
+  <ul>
+    <li>페이지 본문 조회 · 업로드는 동시 4개로 제한한다(설정 가능, 최대 8).</li>
+    <li>목록 조회는 한 번에 최대 250개씩 받는다.</li>
+    <li>인덱스 저장은 임시 파일에 쓴 뒤 교체하는 방식으로 원자적으로 한다.</li>
+    <li>같은 작업 폴더에서 두 명령이 동시에 돌지 않도록 <code>.wiki/lock</code> 파일로 잠근다.</li>
+  </ul>
+
+  <h2>8. 로깅</h2>
+  <ul>
+    <li>로그 위치: <code>.wiki/logs/wiki-YYYYMMDD.log</code> (git 제외)</li>
+    <li>기록: 명령, 호출한 API 경로 · 상태 코드 · 소요 시간, 페이지별 결과</li>
+    <li>기록하지 않음: 토큰, 인증 헤더, 페이지 본문</li>
+    <li><code>--verbose</code>는 같은 내용을 화면에도 출력한다.</li>
+  </ul>
+
+  <h2>9. 테스트 전략</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>종류</th><th>대상</th><th>방법</th></tr></thead>
+    <tbody>
+      <tr><td>단위</td><td>Converter, Index Store, 경로 규칙, status 판정</td><td>pytest. 변환기는 Storage 샘플과 기대 Markdown(golden 파일) 비교</td></tr>
+      <tr><td>왕복</td><td>Converter</td><td>샘플 전체에 대해 5.3 기준 검증</td></tr>
+      <tr><td>통합</td><td>Client + Sync Engine</td><td>HTTP 응답을 모킹(respx)하고 임시 폴더에서 clone · push · pull 시나리오 실행</td></tr>
+      <tr><td>E2E</td><td>실제 Confluence</td><td>테스트 전용 스페이스에서 수동 · 야간 실행. 충돌 시나리오 포함</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>10. 요구사항 추적</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>요구사항</th><th>설계 위치</th></tr></thead>
+    <tbody>
+      <tr><td>FR-01</td><td>Auth, <a href="did.html">DID</a> login</td></tr>
+      <tr><td>FR-02</td><td>4.1 clone</td></tr>
+      <tr><td>FR-03 · FR-04</td><td>4.2 status, diff는 작업 트리와 <code>confluence</code> 브랜치를 비교(<code>git diff confluence</code>)</td></tr>
+      <tr><td>FR-05 · FR-06 · FR-07</td><td>4.4 push</td></tr>
+      <tr><td>FR-08 · FR-12</td><td>5장 변환 설계</td></tr>
+      <tr><td>FR-09</td><td>3장 브랜치 모델, 4.3 pull</td></tr>
+      <tr><td>FR-10 · FR-11 · FR-14</td><td>4.4 push 처리 순서</td></tr>
+      <tr><td>NFR-01</td><td>4.4 버전 조회 + 409 처리</td></tr>
+      <tr><td>NFR-04</td><td>6장 오류 처리, 7장 원자적 저장</td></tr>
+      <tr><td>NFR-05</td><td>Auth, 8장 로깅</td></tr>
+    </tbody>
+  </table>
+  </div>
+</main>
+</body>
+</html>
