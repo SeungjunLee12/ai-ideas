@@ -11,21 +11,47 @@
   <a class="back" href="index.html">← 목록으로</a>
   <h1>AI 온보딩 에이전트 제안</h1>
   <div class="meta">IDT AI 아이디어 챌린지 · 2026-11-10</div>
-
-  <h2>배경</h2>
-  <p>신규 입사자와 PC 교체 직원은 업무 시작 전 반나절 가까이를 환경 세팅과 자료 찾기에 쓴다. 요즘은 MS365를 설치하지 않고 웹으로 쓰는 경우가 많아 세팅 자체는 가벼워졌지만, 무엇을 봐야 하는지는 여전히 선배와 IT 담당자에게 물어봐야 한다.</p>
-  <ul>
-    <li>MS365 웹, 그룹웨어, Jira/Confluence 접속 경로를 각자 찾아 등록</li>
-    <li>사내 매뉴얼이 여러 곳에 흩어져 있어 직접 다운로드하고 정리</li>
-    <li>Confluence 스페이스가 많아 내 업무에 필요한 자료를 고르기 어려움</li>
-  </ul>
-
-  <h2>핵심 메시지</h2>
+  <p class="lead">신규 입사자가 로그인 한 번만 하면, AI가 팀과 직무에 맞는 자료를 골라 바탕화면에 정리합니다. 첫 주 가이드를 만들어 주고, 궁금한 건 바로 답해줍니다.</p>
   <p class="callout">"신입이 뭘 봐야 할지 AI가 알아서 골라주고 정리해준다."</p>
-  <p>설치나 로그인을 대신 해주는 것은 기반 기능일 뿐이다. 이 제안의 핵심은 소속 팀과 직무에 맞춰 AI가 자료를 선별·분류·요약하는 온보딩 에이전트다.</p>
 
-  <h2>단계별 구성</h2>
-  <p>다섯 단계 중 ②~⑤가 AI가 판단하는 구간이며, ①은 이를 위한 기반 자동화다.</p>
+  <nav class="toc">
+    <strong>목차</strong>
+    <ol>
+      <li><a href="#problem">문제 정의</a></li>
+      <li><a href="#solution">솔루션 개요</a></li>
+      <li><a href="#arch">시스템 구성</a></li>
+      <li><a href="#flow">전체 처리 흐름</a></li>
+      <li><a href="#steps">단계별 상세</a></li>
+      <li><a href="#output">결과물 예시</a></li>
+      <li><a href="#stack">기술 스택</a></li>
+      <li><a href="#security">보안 설계</a></li>
+      <li><a href="#effect">기대효과와 측정</a></li>
+      <li><a href="#roadmap">로드맵</a></li>
+      <li><a href="#risk">리스크와 대응</a></li>
+      <li><a href="#demo">데모 시나리오</a></li>
+      <li><a href="#pitch">발표 구성안</a></li>
+      <li><a href="#faq">예상 질문</a></li>
+    </ol>
+  </nav>
+
+  <!-- 1 -->
+  <h2 id="problem">1. 문제 정의</h2>
+  <p>신규 입사자와 PC 교체 직원은 업무를 시작하기 전에 반나절 가까이를 환경 세팅과 자료 찾기에 쓴다. 요즘은 MS365를 설치하지 않고 웹으로 쓰는 경우가 많아서 세팅 자체는 가벼워졌다. 진짜 문제는 <strong>"무엇을 봐야 하는지"</strong>를 여전히 사람에게 물어봐야 한다는 점이다.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>누가</th><th>지금 겪는 불편</th></tr></thead>
+    <tbody>
+      <tr><td>신규 입사자</td><td>MS365 웹, 그룹웨어, Jira/Confluence 주소를 하나씩 찾아 등록하고, 흩어진 매뉴얼을 직접 받아서 정리한다. Confluence 스페이스가 많아 내 업무에 필요한 문서를 고르기 어렵다.</td></tr>
+      <tr><td>선배 · 멘토</td><td>"이 문서 어디 있어요?", "VPN 어떻게 켜요?" 같은 질문을 신입마다 반복해서 받는다.</td></tr>
+      <tr><td>IT 담당자</td><td>계정과 접속 경로 안내를 매번 반복한다. 팀마다 안내 내용이 달라 표준화가 어렵다.</td></tr>
+      <tr><td>팀장</td><td>신입이 실제 업무에 투입되기까지 시간이 걸리고, 온보딩 품질이 멘토 개인 역량에 좌우된다.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- 2 -->
+  <h2 id="solution">2. 솔루션 개요</h2>
+  <p>설치나 로그인을 대신해 주는 기능은 기반일 뿐이다. 핵심은 소속 팀과 직무에 맞춰 AI가 자료를 <strong>선별 · 분류 · 요약</strong>하고, 이후 질문에도 답하는 것이다.</p>
   <div class="table-wrap">
   <table>
     <thead><tr><th>단계</th><th>내용</th><th>AI 역할</th></tr></thead>
@@ -39,21 +65,372 @@
   </table>
   </div>
 
-  <h2>기대효과</h2>
-  <p>아래 수치는 예시이며, 데모 후 실측치로 바꾼다.</p>
-  <ul>
-    <li>온보딩 세팅 시간: 반나절 → 10분</li>
-    <li>선배와 IT 담당자가 반복해서 받는 질문 감소</li>
-    <li>고객사에도 "AI 온보딩 솔루션"으로 확장 가능 (사업 연결성)</li>
-  </ul>
+  <!-- 3 -->
+  <h2 id="arch">3. 시스템 구성</h2>
+  <p>새로 만드는 것은 <strong>온보딩 에이전트</strong>와 <strong>AI 레이어</strong> 두 가지다. 사내 시스템은 지금 쓰는 것을 그대로 쓰고, 사용자 권한 안에서 읽기만 한다.</p>
+  <figure class="diagram">
+  <svg viewBox="0 0 760 310" role="img" aria-label="에이전트가 사내 시스템을 읽고, 판단은 AI 레이어가 맡는다" font-size="13">
+    <defs><marker id="ah1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="d-muted"/></marker></defs>
+    <text x="24" y="32" font-size="15" font-weight="600" class="d-text">에이전트가 사내 시스템을 읽고, 판단은 AI 레이어가 맡는다</text>
+    <g class="d-line">
+      <path d="M224 104H280" marker-end="url(#ah1)"/>
+      <path d="M480 96H536" marker-end="url(#ah1)"/>
+      <path d="M536 116H480" marker-end="url(#ah1)"/>
+      <path d="M380 148V180M107 180H653"/>
+      <path d="M107 180V212" marker-end="url(#ah1)"/>
+      <path d="M289 180V212" marker-end="url(#ah1)"/>
+      <path d="M471 180V212" marker-end="url(#ah1)"/>
+      <path d="M653 180V212" marker-end="url(#ah1)"/>
+    </g>
+    <rect x="24" y="60" width="200" height="88" rx="8" class="d-box"/>
+    <text x="124" y="84" text-anchor="middle" font-weight="600" class="d-text">신규 입사자 PC</text>
+    <text x="124" y="104" text-anchor="middle" font-size="11.5" class="d-muted">에이전트 앱 실행</text>
+    <text x="124" y="120" text-anchor="middle" font-size="11.5" class="d-muted">바탕화면 폴더 생성</text>
+    <text x="124" y="136" text-anchor="middle" font-size="11.5" class="d-muted">브라우저 바로가기</text>
+    <rect x="280" y="60" width="200" height="88" rx="8" class="d-main"/>
+    <text x="380" y="84" text-anchor="middle" font-weight="600" class="d-text">온보딩 에이전트</text>
+    <text x="380" y="104" text-anchor="middle" font-size="11.5" class="d-text">단계 ①~⑤ 순서대로 실행</text>
+    <text x="380" y="120" text-anchor="middle" font-size="11.5" class="d-text">진행 상태 저장</text>
+    <text x="380" y="136" text-anchor="middle" font-size="11.5" class="d-text">실패한 단계만 재시도</text>
+    <rect x="536" y="60" width="200" height="88" rx="8" class="d-main"/>
+    <text x="636" y="84" text-anchor="middle" font-weight="600" class="d-text">AI 레이어</text>
+    <text x="636" y="104" text-anchor="middle" font-size="11.5" class="d-text">LLM: 선별 · 분류 · 요약</text>
+    <text x="636" y="120" text-anchor="middle" font-size="11.5" class="d-text">벡터 DB: Q&amp;A 검색</text>
+    <text x="636" y="136" text-anchor="middle" font-size="11.5" class="d-text">답변에 출처 링크 포함</text>
+    <text x="392" y="172" font-size="11.5" class="d-muted">SSO 위임 토큰 · 읽기 전용</text>
+    <rect x="24" y="212" width="166" height="72" rx="8" class="d-box"/>
+    <text x="107" y="236" text-anchor="middle" font-weight="600" class="d-text">Entra ID (SSO)</text>
+    <text x="107" y="252" text-anchor="middle" font-size="11.5" class="d-muted">로그인 1회</text>
+    <text x="107" y="268" text-anchor="middle" font-size="11.5" class="d-muted">부서 · 직무 · 매니저</text>
+    <rect x="206" y="212" width="166" height="72" rx="8" class="d-box"/>
+    <text x="289" y="236" text-anchor="middle" font-weight="600" class="d-text">Microsoft 365</text>
+    <text x="289" y="252" text-anchor="middle" font-size="11.5" class="d-muted">Graph API</text>
+    <text x="289" y="268" text-anchor="middle" font-size="11.5" class="d-muted">OneDrive · SharePoint</text>
+    <rect x="388" y="212" width="166" height="72" rx="8" class="d-box"/>
+    <text x="471" y="236" text-anchor="middle" font-weight="600" class="d-text">그룹웨어</text>
+    <text x="471" y="252" text-anchor="middle" font-size="11.5" class="d-muted">공지 · 사내 규정</text>
+    <text x="471" y="268" text-anchor="middle" font-size="11.5" class="d-muted">양식 · 매뉴얼</text>
+    <rect x="570" y="212" width="166" height="72" rx="8" class="d-box"/>
+    <text x="653" y="236" text-anchor="middle" font-weight="600" class="d-text">Confluence · Jira</text>
+    <text x="653" y="252" text-anchor="middle" font-size="11.5" class="d-muted">팀 스페이스</text>
+    <text x="653" y="268" text-anchor="middle" font-size="11.5" class="d-muted">담당 이슈 · 보드</text>
+  </svg>
+  </figure>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>구성요소</th><th>역할</th></tr></thead>
+    <tbody>
+      <tr><td>에이전트 앱</td><td>사용자 PC에서 실행되는 작은 프로그램. 바탕화면 폴더와 바로가기를 만들고, 진행 상황을 보여준다.</td></tr>
+      <tr><td>온보딩 에이전트</td><td>①~⑤ 단계를 순서대로 실행하는 오케스트레이터. 어느 단계까지 끝났는지 저장해서, 중간에 실패해도 그 단계부터 다시 한다.</td></tr>
+      <tr><td>AI 레이어</td><td>LLM이 문서 선별 · 분류 · 요약을 맡고, 벡터 DB가 Q&amp;A 검색을 맡는다. 답변에는 항상 근거 문서 링크를 붙인다.</td></tr>
+      <tr><td>사내 시스템</td><td>Entra ID에서 부서 · 직무 · 매니저 정보를, 나머지 시스템에서 문서 목록과 본문을 읽는다. 쓰기 작업은 하지 않는다.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">MS365를 쓰고 있어 SSO는 Entra ID(구 Azure AD) 기준으로 그렸다. 실제 사내 인증 방식에 맞춰 조정한다.</p>
 
-  <h2>보안 고려 및 데모 범위</h2>
-  <p>계정 정보는 AI가 저장하거나 대신 입력하지 않는다. 사용자가 회사 SSO 인증을 한 번 하면, 에이전트는 그 인증 범위 안에서만 자료에 접근한다.</p>
-  <ul>
-    <li>데모 범위: ②~⑤ (Confluence API + LLM). 예를 들어 "개발팀 신입"을 입력하면 폴더와 첫 주 가이드가 생성되는 화면</li>
-    <li>① 실제 로그인 자동화는 데모에서 제외하고 구성도로만 설명</li>
-    <li>예상 소요: 데모 제작 1~2주 (접수 마감 11/26)</li>
-  </ul>
+  <!-- 4 -->
+  <h2 id="flow">4. 전체 처리 흐름</h2>
+  <p>사용자가 하는 일은 처음 로그인과 마지막 확인뿐이다. 그 사이 4~8단계는 AI가 판단하고 처리한다.</p>
+  <figure class="diagram">
+  <svg viewBox="0 0 760 784" role="img" aria-label="사용자는 로그인과 확인만, 나머지는 에이전트와 AI가 처리" font-size="13">
+    <defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="d-muted"/></marker></defs>
+    <text x="24" y="32" font-size="15" font-weight="600" class="d-text">사용자는 로그인과 확인만, 나머지는 에이전트와 AI가 처리</text>
+    <rect x="16" y="80" width="176" height="696" rx="8" class="d-lane"/>
+    <rect x="200" y="80" width="176" height="696" rx="8" class="d-lane"/>
+    <rect x="384" y="80" width="176" height="696" rx="8" class="d-lane"/>
+    <rect x="568" y="80" width="176" height="696" rx="8" class="d-lane"/>
+    <text x="104" y="68" text-anchor="middle" font-weight="600" class="d-head">신규 입사자</text>
+    <text x="288" y="68" text-anchor="middle" font-weight="600" class="d-head">온보딩 에이전트</text>
+    <text x="472" y="68" text-anchor="middle" font-weight="600" class="d-head">AI 레이어</text>
+    <text x="656" y="68" text-anchor="middle" font-weight="600" class="d-head">사내 시스템</text>
+    <g class="d-line">
+      <path d="M184 124H576" marker-end="url(#ah2)"/>
+      <path d="M656 152V162H288V172" marker-end="url(#ah2)"/>
+      <path d="M288 228V248" marker-end="url(#ah2)"/>
+      <path d="M368 276H576" marker-end="url(#ah2)"/>
+      <path d="M656 304V314H472V324" marker-end="url(#ah2)"/>
+      <path d="M472 380V390H288V400" marker-end="url(#ah2)"/>
+      <path d="M288 456V466H472V476" marker-end="url(#ah2)"/>
+      <path d="M472 532V552" marker-end="url(#ah2)"/>
+      <path d="M472 608V628" marker-end="url(#ah2)"/>
+      <path d="M472 684V694H104V704" marker-end="url(#ah2)"/>
+    </g>
+    <text x="380" y="116" text-anchor="middle" font-size="11.5" class="d-muted">SSO 인증</text>
+    <text x="472" y="268" text-anchor="middle" font-size="11.5" class="d-muted">문서 목록 요청</text>
+    <!-- r1 -->
+    <rect x="24" y="96" width="160" height="56" rx="8" class="d-box" style="fill:var(--bg)"/>
+    <text x="104" y="120" text-anchor="middle" font-weight="600" class="d-text">1. 실행 · 로그인</text>
+    <text x="104" y="138" text-anchor="middle" font-size="11.5" class="d-muted">SSO 한 번만</text>
+    <rect x="576" y="96" width="160" height="56" rx="8" class="d-box" style="fill:var(--bg)"/>
+    <text x="656" y="120" text-anchor="middle" font-weight="600" class="d-text">Entra ID</text>
+    <text x="656" y="138" text-anchor="middle" font-size="11.5" class="d-muted">토큰 · 부서 · 직무</text>
+    <!-- r2 -->
+    <rect x="208" y="172" width="160" height="56" rx="8" class="d-box" style="fill:var(--bg)"/>
+    <text x="288" y="196" text-anchor="middle" font-weight="600" class="d-text">2. 기본 세팅 ①</text>
+    <text x="288" y="214" text-anchor="middle" font-size="11.5" class="d-muted">바로가기 · 북마크</text>
+    <!-- r3 -->
+    <rect x="208" y="248" width="160" height="56" rx="8" class="d-box" style="fill:var(--bg)"/>
+    <text x="288" y="272" text-anchor="middle" font-weight="600" class="d-text">3. 후보 문서 수집</text>
+    <text x="288" y="290" text-anchor="middle" font-size="11.5" class="d-muted">팀 스페이스 위주</text>
+    <rect x="576" y="248" width="160" height="56" rx="8" class="d-box" style="fill:var(--bg)"/>
+    <text x="656" y="272" text-anchor="middle" font-weight="600" class="d-text">Confluence 외</text>
+    <text x="656" y="290" text-anchor="middle" font-size="11.5" class="d-muted">그룹웨어 · SharePoint</text>
+    <!-- r4 -->
+    <rect x="392" y="324" width="160" height="56" rx="8" class="d-main"/>
+    <text x="472" y="348" text-anchor="middle" font-weight="600" class="d-text">4. 맞춤 선별 ②</text>
+    <text x="472" y="366" text-anchor="middle" font-size="11.5" class="d-text">관련도 점수 · 상위 N</text>
+    <!-- r5 -->
+    <rect x="208" y="400" width="160" height="56" rx="8" class="d-box" style="fill:var(--bg)"/>
+    <text x="288" y="424" text-anchor="middle" font-weight="600" class="d-text">5. 다운로드</text>
+    <text x="288" y="442" text-anchor="middle" font-size="11.5" class="d-muted">선별된 문서만 저장</text>
+    <!-- r6 -->
+    <rect x="392" y="476" width="160" height="56" rx="8" class="d-main"/>
+    <text x="472" y="500" text-anchor="middle" font-weight="600" class="d-text">6. 자동 분류 ③</text>
+    <text x="472" y="518" text-anchor="middle" font-size="11.5" class="d-text">폴더 · 파일명 결정</text>
+    <!-- r7 -->
+    <rect x="392" y="552" width="160" height="56" rx="8" class="d-main"/>
+    <text x="472" y="576" text-anchor="middle" font-weight="600" class="d-text">7. 첫 주 가이드 ④</text>
+    <text x="472" y="594" text-anchor="middle" font-size="11.5" class="d-text">요약 · 체크리스트</text>
+    <!-- r8 -->
+    <rect x="392" y="628" width="160" height="56" rx="8" class="d-main"/>
+    <text x="472" y="652" text-anchor="middle" font-weight="600" class="d-text">8. Q&amp;A 인덱싱 ⑤</text>
+    <text x="472" y="670" text-anchor="middle" font-size="11.5" class="d-text">벡터 DB에 저장</text>
+    <!-- r9 -->
+    <rect x="24" y="704" width="160" height="56" rx="8" class="d-box" style="fill:var(--bg)"/>
+    <text x="104" y="728" text-anchor="middle" font-weight="600" class="d-text">9. 완료 리포트</text>
+    <text x="104" y="746" text-anchor="middle" font-size="11.5" class="d-muted">가이드 · Q&amp;A 창 열림</text>
+  </svg>
+  </figure>
+  <p class="note">파란 상자가 AI가 판단하는 단계다. 목표 소요 시간은 전체 10분 이내이며, 대부분은 문서 다운로드와 요약 생성 시간이다.</p>
+
+  <!-- 5 -->
+  <h2 id="steps">5. 단계별 상세</h2>
+  <p>각 단계가 무엇을 받아서, 어떻게 처리하고, 무엇을 남기는지 정리했다.</p>
+
+  <div class="step">
+    <h3>① 기본 세팅</h3>
+    <dl>
+      <dt>입력</dt><dd>SSO 로그인 결과 (사용자 이름, 부서, 직무)</dd>
+      <dt>처리</dt><dd>공통 바로가기 목록(MS365 웹, 그룹웨어, Jira, Confluence)에 부서별 추가 항목을 더해 바탕화면과 브라우저 북마크에 생성</dd>
+      <dt>출력</dt><dd>바탕화면 <code>업무 바로가기</code> 폴더, 브라우저 북마크 폴더</dd>
+      <dt>AI</dt><dd>사용하지 않음. 규칙 기반 자동화</dd>
+    </dl>
+  </div>
+
+  <div class="step">
+    <h3>② 맞춤 자료 선별</h3>
+    <dl>
+      <dt>입력</dt><dd>부서 · 직무 · 매니저 정보, 접근 가능한 Confluence 스페이스와 그룹웨어 매뉴얼 목록 (제목, 라벨, 최근 수정일, 조회 수)</dd>
+      <dt>처리</dt><dd>1차로 규칙으로 후보를 줄인다 (전사 필수 문서 + 소속 팀 스페이스 + 최근 1년 내 수정). 2차로 LLM이 문서마다 "이 직무의 신입에게 첫 달에 필요한가"를 0~10점으로 매기고 이유를 한 줄로 남긴다.</dd>
+      <dt>출력</dt><dd>상위 N개 문서 목록 + 선정 이유 (예: 30개)</dd>
+      <dt>AI</dt><dd>관련도 판단. 문서 전체가 아니라 제목 · 요약 · 목차만 보내서 비용과 시간을 줄인다.</dd>
+    </dl>
+  </div>
+
+  <div class="step">
+    <h3>③ 자동 폴더 정리</h3>
+    <dl>
+      <dt>입력</dt><dd>선별된 문서 파일과 본문 앞부분</dd>
+      <dt>처리</dt><dd>미리 정한 분류 체계(01_필수규정 / 02_개발환경 / 03_프로젝트 / 04_참고)에 LLM이 문서를 배정하고, 알아보기 쉬운 파일명으로 바꾼다.</dd>
+      <dt>출력</dt><dd>바탕화면 <code>온보딩 자료</code> 폴더 (주제별 하위 폴더)</dd>
+      <dt>AI</dt><dd>분류와 파일명 생성. 분류 체계를 고정해 두어서 사람마다 결과가 달라지지 않는다.</dd>
+    </dl>
+  </div>
+
+  <div class="step">
+    <h3>④ 첫 주 가이드 생성</h3>
+    <dl>
+      <dt>입력</dt><dd>분류된 문서, 선정 이유, 매니저 · 팀원 정보</dd>
+      <dt>처리</dt><dd>정해진 템플릿(읽을 문서 · 세팅 체크리스트 · 물어볼 사람)에 맞춰 LLM이 요약본을 작성한다. 문서마다 3줄 요약을 붙인다.</dd>
+      <dt>출력</dt><dd><code>첫 주 가이드.docx</code> (또는 Confluence 개인 페이지)</dd>
+      <dt>AI</dt><dd>요약과 우선순위 판단</dd>
+    </dl>
+  </div>
+
+  <div class="step">
+    <h3>⑤ 온보딩 Q&amp;A</h3>
+    <dl>
+      <dt>입력</dt><dd>선별된 문서 + 전사 FAQ</dd>
+      <dt>처리</dt><dd>문서를 문단 단위로 나눠 벡터 DB에 저장하고(RAG), 질문이 오면 관련 문단을 찾아 LLM이 답한다. 근거가 없으면 지어내지 않고 담당자를 안내한다.</dd>
+      <dt>출력</dt><dd>Teams 챗봇 또는 에이전트 앱 내 채팅 창</dd>
+      <dt>AI</dt><dd>검색 + 답변 생성. 모든 답변에 출처 문서 링크를 붙인다.</dd>
+    </dl>
+  </div>
+
+  <!-- 6 -->
+  <h2 id="output">6. 결과물 예시</h2>
+  <p>"개발팀 신입"으로 실행했을 때 사용자가 실제로 받게 되는 결과물이다. 문서 이름은 예시다.</p>
+
+  <h3>바탕화면 폴더</h3>
+<pre><code>바탕화면\
+├─ 업무 바로가기\
+│  ├─ Outlook (웹).url
+│  ├─ Teams (웹).url
+│  ├─ 그룹웨어.url
+│  ├─ Jira - 우리 팀 보드.url
+│  └─ Confluence - 개발팀 스페이스.url
+└─ 온보딩 자료\
+   ├─ 00_첫 주 가이드.docx
+   ├─ 01_필수규정\
+   │  ├─ 보안 서약 및 정보보호 지침.pdf
+   │  └─ 근태 · 휴가 규정.pdf
+   ├─ 02_개발환경\
+   │  ├─ 개발 PC 세팅 가이드.pdf
+   │  ├─ VPN 접속 방법.pdf
+   │  └─ 빌드 · 배포 파이프라인 설명.pdf
+   └─ 03_프로젝트\
+      ├─ 주요 솔루션 아키텍처 개요.pdf
+      └─ 코드 리뷰 규칙.pdf</code></pre>
+
+  <h3>첫 주 가이드</h3>
+  <div class="mock">
+    <div class="mock-bar">00_첫 주 가이드.docx</div>
+    <div class="mock-body">
+      <strong>환영합니다! 개발팀 첫 주 가이드</strong>
+      <p><strong>이번 주에 읽을 문서 (우선순위 순)</strong></p>
+      <ol>
+        <li>보안 서약 및 정보보호 지침: 첫날 서명 필요. 외부 반출 금지 자료 기준 확인</li>
+        <li>개발 PC 세팅 가이드: JDK · IDE · 사내 저장소 접속 설정 순서</li>
+        <li>VPN 접속 방법: 재택 · 외부 근무 시 필수</li>
+        <li>빌드 · 배포 파이프라인 설명: 우리 팀 배포 흐름과 담당자</li>
+        <li>코드 리뷰 규칙: PR 작성 방식과 리뷰 기준</li>
+      </ol>
+      <p><strong>세팅 체크리스트</strong></p>
+      <ul>
+        <li>☐ 보안 서약서 제출</li>
+        <li>☐ VPN 접속 확인</li>
+        <li>☐ 사내 Git 저장소 권한 요청</li>
+        <li>☐ Jira 보드 담당 이슈 확인</li>
+      </ul>
+      <p><strong>물어볼 사람</strong>: 매니저, 온보딩 멘토, IT 지원 (조직 정보에서 자동 입력)</p>
+    </div>
+  </div>
+
+  <h3>온보딩 Q&amp;A</h3>
+  <div class="mock chat">
+    <div class="mock-bar">온보딩 도우미</div>
+    <div class="mock-body">
+      <div class="q"><span>VPN 어떻게 켜요?</span></div>
+      <div class="a">VPN 클라이언트를 실행한 뒤 사내 계정으로 로그인하면 됩니다. 처음 접속할 때는 OTP 등록이 필요해요. 자세한 순서는 아래 문서 3페이지에 있습니다.
+        <div class="src">출처: 02_개발환경 / VPN 접속 방법.pdf</div>
+      </div>
+      <div class="q"><span>법인카드 신청은요?</span></div>
+      <div class="a">받은 자료에서 근거를 찾지 못했어요. 경영지원팀 담당자에게 문의해 주세요.
+        <div class="src">근거 없음 → 담당자 안내</div>
+      </div>
+    </div>
+  </div>
+  <p class="note">답변 내용은 예시다. 실제 답변은 사내 문서 내용을 따른다.</p>
+
+  <!-- 7 -->
+  <h2 id="stack">7. 기술 스택</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>영역</th><th>기술</th><th>선택 이유</th></tr></thead>
+    <tbody>
+      <tr><td>에이전트 앱</td><td>Python (트레이 앱) 또는 PowerShell</td><td>Windows 바탕화면 · 바로가기 제어가 쉽고 배포가 가볍다</td></tr>
+      <tr><td>인증</td><td>Entra ID OAuth (MSAL)</td><td>사용자가 비밀번호를 앱에 입력하지 않고 위임 권한만 받는다</td></tr>
+      <tr><td>M365 연동</td><td>Microsoft Graph API</td><td>OneDrive · SharePoint 문서, 조직 정보를 한 API로 조회</td></tr>
+      <tr><td>Confluence · Jira</td><td>Atlassian REST API</td><td>스페이스 · 페이지 · 이슈 조회</td></tr>
+      <tr><td>그룹웨어</td><td>그룹웨어 제공 API (없으면 지정 폴더 동기화)</td><td>시스템별 지원 범위에 맞춰 선택</td></tr>
+      <tr><td>LLM</td><td>Claude API (사내 승인 모델로 교체 가능)</td><td>긴 문서 요약 · 한국어 품질. 모델은 설정으로 교체</td></tr>
+      <tr><td>Q&amp;A 검색</td><td>임베딩 + 벡터 DB (Chroma, pgvector 등)</td><td>문단 단위 검색으로 근거 있는 답변</td></tr>
+      <tr><td>Q&amp;A 창구</td><td>Teams 봇 또는 앱 내 채팅</td><td>이미 매일 쓰는 도구에서 바로 질문</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- 8 -->
+  <h2 id="security">8. 보안 설계</h2>
+  <p>원칙은 하나다. <strong>AI는 사용자가 이미 볼 수 있는 자료만, 읽기 전용으로 다룬다.</strong></p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>우려</th><th>설계</th></tr></thead>
+    <tbody>
+      <tr><td>계정 · 비밀번호 유출</td><td>비밀번호는 저장하거나 대신 입력하지 않는다. SSO 위임 토큰만 쓰고, 토큰은 Windows 자격 증명 관리자에 보관한다.</td></tr>
+      <tr><td>권한 밖 문서 노출</td><td>모든 조회는 사용자 본인 토큰으로 한다. 사용자가 원래 못 보는 문서는 에이전트도 못 본다.</td></tr>
+      <tr><td>사내 문서가 외부 AI로 전송</td><td>사내 승인된 LLM 환경(기업용 계약, 학습 미사용 조건)만 쓴다. 선별 단계는 제목 · 목차만 보낸다.</td></tr>
+      <tr><td>AI가 틀린 답변</td><td>근거 문서가 없으면 답하지 않고 담당자를 안내한다. 모든 답변에 출처를 표시한다.</td></tr>
+      <tr><td>시스템 변경 사고</td><td>사내 시스템에는 쓰기 작업을 하지 않는다. 변경은 사용자 PC 안에서만 일어난다.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- 9 -->
+  <h2 id="effect">9. 기대효과와 측정</h2>
+  <p>아래 수치는 목표치이며, 파일럿에서 실측해 바꾼다.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>지표</th><th>현재 (추정)</th><th>목표</th><th>측정 방법</th></tr></thead>
+    <tbody>
+      <tr><td>온보딩 세팅 시간</td><td>반나절</td><td>10분</td><td>에이전트 실행 로그 + 신입 설문</td></tr>
+      <tr><td>선배 · IT에 오는 반복 질문</td><td>측정 필요</td><td>절반 이하</td><td>Q&amp;A 질문 수, 멘토 설문</td></tr>
+      <tr><td>첫 주 필수 문서 열람률</td><td>측정 필요</td><td>90% 이상</td><td>가이드 체크리스트 완료율</td></tr>
+      <tr><td>Q&amp;A 답변 만족도</td><td>-</td><td>"도움됨" 80% 이상</td><td>답변별 좋아요 / 싫어요</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>사업 측면에서는 같은 구조를 고객사에도 <strong>"AI 온보딩 솔루션"</strong>으로 제안할 수 있다. 커넥터만 고객사 시스템에 맞게 바꾸면 된다.</p>
+
+  <!-- 10 -->
+  <h2 id="roadmap">10. 로드맵</h2>
+  <ol>
+    <li><strong>PoC (챌린지 제출, ~11/26)</strong>: ②~④ 데모. Confluence API + LLM으로 "개발팀 신입" 입력 → 폴더와 첫 주 가이드 생성</li>
+    <li><strong>사내 파일럿</strong>: 신규 입사자 3~5명에게 적용. ① 기본 세팅과 ⑤ Q&amp;A 추가, 기대효과 수치 실측</li>
+    <li><strong>전사 확대</strong>: 부서별 바로가기 · 분류 체계 등록, Teams 봇 배포, 관리자용 통계 화면</li>
+    <li><strong>고객사 상품화</strong>: 커넥터 표준화, 고객사 인증 · 문서 시스템 연동 패키지</li>
+  </ol>
+
+  <!-- 11 -->
+  <h2 id="risk">11. 리스크와 대응</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>리스크</th><th>대응</th></tr></thead>
+    <tbody>
+      <tr><td>사내 문서가 오래됐거나 중복이 많음</td><td>최근 수정일을 선별 점수에 반영한다. 오래된 문서 목록을 문서 관리자에게 리포트로 주는 부가 효과도 있다.</td></tr>
+      <tr><td>그룹웨어 API가 없음</td><td>그룹웨어 매뉴얼을 지정된 SharePoint 폴더로 모아두고 그곳을 읽는다.</td></tr>
+      <tr><td>AI 선별 결과가 부서 기대와 다름</td><td>부서별 "필수 문서" 목록을 직접 지정할 수 있게 하고, AI는 나머지만 고른다.</td></tr>
+      <tr><td>LLM 사용 비용</td><td>선별은 제목 · 목차만 사용하고 요약은 선별된 문서만 한다. 신입 1명당 처리량이 작아 비용 부담이 낮다.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- 12 -->
+  <h2 id="demo">12. 데모 시나리오 (3분)</h2>
+  <ol>
+    <li><strong>0:00 빈 바탕화면</strong>: "오늘 입사한 개발팀 신입의 PC입니다."</li>
+    <li><strong>0:20 에이전트 실행</strong>: 부서 "개발팀", 직무 "백엔드 개발" 입력 (데모에서는 SSO 대신 직접 입력)</li>
+    <li><strong>0:40 진행 화면</strong>: "후보 문서 120개 → AI 선별 30개 → 분류 중" 단계별 진행 표시</li>
+    <li><strong>1:30 결과 확인</strong>: 바탕화면에 생긴 <code>온보딩 자료</code> 폴더를 열어 주제별 정리 결과를 보여줌</li>
+    <li><strong>2:00 첫 주 가이드</strong>: 가이드 문서를 열고, 문서별 선정 이유와 3줄 요약을 보여줌</li>
+    <li><strong>2:30 Q&amp;A</strong>: "VPN 어떻게 켜요?"에 출처 포함 답변, 근거 없는 질문에는 담당자 안내</li>
+  </ol>
+  <p class="note">데모는 개인 테스트 스페이스의 샘플 문서로 진행한다. 실제 사내 문서는 쓰지 않는다.</p>
+
+  <!-- 13 -->
+  <h2 id="pitch">13. 발표 구성안 (10분)</h2>
+  <ol class="slides">
+    <li><span class="t">표지: AI 온보딩 에이전트</span><div class="say">"신입이 뭘 봐야 할지, AI가 골라주고 정리해줍니다."</div></li>
+    <li><span class="t">공감: 입사 첫날의 반나절</span><div class="say">바로가기 찾기, 매뉴얼 다운로드, 선배에게 반복 질문. 다들 겪어본 장면으로 시작한다.</div></li>
+    <li><span class="t">문제 정의: 세팅이 아니라 "무엇을 볼지"가 문제</span><div class="say">MS365는 웹으로 쓰니 설치는 쉬워졌다. 남은 문제는 자료 선별이다. (1장 표)</div></li>
+    <li><span class="t">솔루션: 5단계 중 4단계를 AI가 판단</span><div class="say">단계 표에서 ②~⑤에 강조 표시. 단순 자동화가 아니라는 점을 분명히 한다.</div></li>
+    <li><span class="t">어떻게 동작하나: 시스템 구성</span><div class="say">새로 만드는 건 두 개뿐, 사내 시스템은 읽기만 한다. (3장 그림)</div></li>
+    <li><span class="t">처리 흐름</span><div class="say">사용자는 로그인과 확인만 한다. (4장 그림)</div></li>
+    <li><span class="t">데모</span><div class="say">3분 시연 영상 또는 라이브. (12장 시나리오)</div></li>
+    <li><span class="t">보안: AI는 내가 볼 수 있는 것만 읽는다</span><div class="say">비밀번호 미저장, 본인 권한, 읽기 전용, 출처 표시. (8장 표)</div></li>
+    <li><span class="t">기대효과</span><div class="say">반나절 → 10분, 반복 질문 감소, 측정 방법까지 제시. (9장 표)</div></li>
+    <li><span class="t">확장: 사내 → 고객사 솔루션</span><div class="say">로드맵 4단계와 고객사 상품화 가능성으로 마무리한다.</div></li>
+  </ol>
+
+  <!-- 14 -->
+  <h2 id="faq">14. 예상 질문</h2>
+  <details><summary>그냥 스크립트로 자동화하면 되는 것 아닌가요?</summary><p>바로가기 생성 같은 ①단계는 스크립트로 충분하다. 하지만 "이 직무의 신입에게 어떤 문서가 필요한가"는 규칙으로 정하기 어렵고, 문서가 바뀔 때마다 규칙도 고쳐야 한다. 이 판단을 AI가 맡는 것이 핵심이다.</p></details>
+  <details><summary>Intune이나 Autopilot 같은 기존 도구와 무엇이 다른가요?</summary><p>그 도구들은 PC와 앱 설치를 관리한다. 이 제안은 그 위에서 "사람에게 맞는 자료와 안내"를 다룬다. 서로 겹치지 않고 함께 쓸 수 있다.</p></details>
+  <details><summary>사내 문서를 외부 AI에 보내도 되나요?</summary><p>사내에서 승인한 기업용 LLM 환경만 사용한다. 선별 단계는 제목과 목차만 보내고, 모델은 설정으로 사내 승인 모델로 바꿀 수 있다.</p></details>
+  <details><summary>AI가 엉뚱한 문서를 고르면요?</summary><p>부서별 필수 문서는 사람이 지정하고, AI는 나머지 추천만 맡는다. 선정 이유를 함께 보여주므로 잘못 고른 경우 바로 알 수 있다.</p></details>
+  <details><summary>AI가 틀린 답을 하면요?</summary><p>근거 문서에서 찾은 내용만 답하고, 모든 답변에 출처를 붙인다. 근거가 없으면 답하지 않고 담당자를 안내한다.</p></details>
+  <details><summary>개발 기간과 비용은요?</summary><p>PoC는 1~2주, 사내 파일럿은 추가로 한 달 정도를 예상한다. LLM 비용은 신입 1명당 처리 문서가 수십 건 수준이라 크지 않다.</p></details>
 
   <footer>IDT AI 아이디어 챌린지 제출 아이디어</footer>
 </main>
